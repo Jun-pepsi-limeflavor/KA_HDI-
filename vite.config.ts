@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/HDI_DASH/', // 리포지토리 이름으로 변경하세요
+  base: '/KA_HDI-/', // GitHub 리포지토리 이름에 맞춤
   server: {
     port: 3000,
     open: true
