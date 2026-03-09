@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
-import { AlertTriangle, Settings, Bell, Activity, Gauge, LucideIcon } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { AlertTriangle, Settings, Activity, Gauge, LucideIcon } from 'lucide-react';
 
 interface FailureScenario {
   location: string;
@@ -12,16 +12,6 @@ interface FailureScenario {
   details: string;
   stftPattern: string;
   emCluster: string;
-}
-
-interface GaugeChartProps {
-  value: number;
-  maxValue?: number;
-  title: string;
-}
-
-interface AnomalyIndicatorProps {
-  score: number;
 }
 
 interface PipelineItem {
@@ -40,7 +30,6 @@ interface PipelineSegment {
 const KiboPoscoDashboard = () => {
   const [showModal, setShowModal] = useState(false);
   const [currentFailureIndex] = useState(0);
-  const [transferProgress] = useState(0.001);
   const [currentSegmentIndex, setCurrentSegmentIndex] = useState(0);
   
   // EM-AAE 스핀들 고장 예측 시나리오들
@@ -73,8 +62,8 @@ const KiboPoscoDashboard = () => {
   // 파이프라인 세그멘트 데이터
   const pipelineSegments: PipelineSegment[] = [
     {
-      id: 'TK_Feed_VV_Check',
-      title: 'TK_Feed_VV_Check',
+      id: '탱크 압력 제어 릴레이',
+      title: '탱크 압력 제어 릴레이',
       icon: Gauge,
       color: 'text-blue-600',
       items: [
@@ -85,8 +74,8 @@ const KiboPoscoDashboard = () => {
       ]
     },
     {
-      id: 'MTK_AG_Trip',
-      title: 'MTK_AG_Trip',
+      id: '탱크 온도 제어 릴레이',
+      title: '탱크 온도 제어 릴레이',
       icon: Activity,
       color: 'text-green-600',
       items: [
@@ -96,8 +85,8 @@ const KiboPoscoDashboard = () => {
       ]
     },
     {
-      id: 'STK_Feed_Pump',
-      title: 'STK_Feed_Pump_SV',
+      id: '레벨 제어 릴레이',
+      title: '레벨 제어 릴레이',
       icon: Settings,
       color: 'text-purple-600',
       items: [
@@ -107,8 +96,8 @@ const KiboPoscoDashboard = () => {
       ]
     },
     {
-      id: 'Actual_P1_g_s1_HD1',
-      title: 'Actual_HD1_flow',
+      id: '압력 제어 릴레이',
+      title: '압력 제어 릴레이',
       icon: Activity,
       color: 'text-gray-600',
       items: [
@@ -118,8 +107,8 @@ const KiboPoscoDashboard = () => {
       ]
     },
     {
-      id: 'Press_P7',
-      title: 'Press_P7',
+      id: '레벨 제어 릴레이',
+      title: '레벨 제어 릴레이',
       icon: AlertTriangle,
       color: 'text-orange-600',
       items: [
@@ -160,87 +149,7 @@ const KiboPoscoDashboard = () => {
 
   const [spindleData] = useState(generateSpindleData());
 
-  // EM-AAE 이상 탐지 점수 데이터
-  const [emAaeData] = useState([
-    { time: '00:00', normal: 0.18, anomaly: 0.82, threshold: 0.85 },
-    { time: '04:00', anomaly: 0.75, threshold: 0.85 },
-    { time: '08:00', anomaly: 0.70, threshold: 0.85 },
-    { time: '12:00', anomaly: 0.79, threshold: 0.85 },
-    { time: '16:00', anomaly: 0.87, threshold: 0.85 },
-    { time: '20:00', anomaly: 0.82, threshold: 0.85 },
-    { time: '24:00', anomaly: 0.85, threshold: 0.85 }
-  ]);
 
-  // 스핀들 건강도 레이더 차트 데이터
-  const healthRadarData = [
-    { subject: '원료 레벨센서', score: 70, fullMark: 100 },
-    { subject: '모터', score: 85, fullMark: 100 },
-    { subject: '진공펌프', score: 88, fullMark: 100 },
-    { subject: 'AM-315', score: 90, fullMark: 100 },
-    { subject: 'ST-243', score: 68, fullMark: 100 }
-  ];
-
-  const GaugeChart = ({ value, maxValue = 168, title }: GaugeChartProps) => {
-    const percentage = (value / maxValue) * 100;
-    const angle = (percentage / 100) * 180;
-    
-    const getColor = (val: number) => {
-      if (val > 100) return '#16a34a';
-      if (val > 48) return '#f59e0b';
-      return '#ef4444';
-    };
-
-    return (
-      <div className="flex flex-col items-center">
-        <div className="relative w-32 h-16">
-          <svg viewBox="0 0 100 50" className="w-full h-full">
-            <path
-              d="M 10 45 A 40 40 0 0 1 90 45"
-              stroke="#e5e7eb"
-              strokeWidth="8"
-              fill="none"
-            />
-            <path
-              d={`M 10 45 A 40 40 0 0 1 ${50 + 40 * Math.cos(Math.PI - (angle * Math.PI / 180))} ${45 - 40 * Math.sin(Math.PI - (angle * Math.PI / 180))}`}
-              stroke={getColor(value)}
-              strokeWidth="8"
-              fill="none"
-              strokeLinecap="round"
-            />
-            <circle cx="50" cy="45" r="2" fill={getColor(value)} />
-          </svg>
-        </div>
-        <div className="text-xs text-gray-600 text-center">{title}</div>
-      </div>
-    );
-  };
-
-  const AnomalyIndicator = ({ score }: AnomalyIndicatorProps) => {
-    const getStatus = (score: number) => {
-      if (score >= 0.8) return { label: 'Critical', color: 'bg-red-100 text-red-800 border-red-200' };
-      if (score >= 0.6) return { label: 'Warning', color: 'bg-yellow-100 text-yellow-800 border-yellow-200' };
-      return { label: 'Normal', color: 'bg-green-100 text-green-800 border-green-200' };
-    };
-
-    const status = getStatus(score);
-
-    return (
-      <div className="flex items-center gap-2">
-        <div className={`px-2 py-1 rounded-md text-xs font-medium border ${status.color}`}>
-          {status.label}
-        </div>
-        <span className="text-sm font-mono">{score.toFixed(3)}</span>
-      </div>
-    );
-  };
-
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    const target = e.target as HTMLImageElement;
-    target.style.display = 'none';
-    if (target.parentElement) {
-      target.parentElement.innerHTML = '<div class="w-full h-48 bg-gray-700 rounded-lg flex items-center justify-center"><div class="text-center"><div class="text-6xl mb-2">⚙️</div><div class="text-white text-lg font-semibold">CLX 460 TC</div><div class="text-gray-400 text-sm">CNC Turning Center</div></div></div>';
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4">
@@ -266,24 +175,12 @@ const KiboPoscoDashboard = () => {
               <p className="text-xl text-blue-100">울산공장 고압발포 제 2라인</p>
               <p className="text-sm text-blue-200 mt-2">High Pressure COLD 2nd line — 실시간 모니터링</p>
             </div>
-            <div className="flex gap-2">
-              <button className="px-3 py-2 bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg hover:bg-white/10 flex items-center gap-2 text-sm">
-                <Activity className="w-4 h-4" />
-                실시간 데이터
-              </button>
-              <button 
-                onClick={() => setShowModal(true)}
-                className="px-3 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg hover:bg-white/20 flex items-center gap-2 text-sm"
-              >
-                <Bell className="w-4 h-4" />
-                에라 메세지 상세
-              </button>
-            </div>
+            
           </div>
         </div>
         
         {/* Machine Visual */}
-        <div style={{ backgroundColor: 'rgb(38, 38, 38)' }} className="p-6 flex items-center justify-center">
+        {/* <div style={{ backgroundColor: 'rgb(38, 38, 38)' }} className="p-6 flex items-center justify-center">
           <div className="relative">
             <img 
               src="/image/HD1_Flowchart.png" 
@@ -307,19 +204,19 @@ const KiboPoscoDashboard = () => {
             </div>
           </div>
           
-        </div>
+        </div> */}
       </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white p-4 rounded-lg shadow-md border-l-4 border-red-500">
+        {/* <div className="bg-white p-4 rounded-lg shadow-md border-l-4 border-red-500">
           <div className="text-sm text-gray-600 mb-1">이상 탐지 로그</div>
           <div className="text-2xl font-bold text-red-600 mb-2">#건 (최근 24h)</div>
           <AnomalyIndicator score= {0}/>
           <div className="text-xs text-gray-500 mt-2">LSTM-AAE 기반 실시간 감지</div>
-        </div>
+        </div> */}
 
-        <div className="bg-white p-4 rounded-lg shadow-md border-l-4 border-orange-500">
+        {/* <div className="bg-white p-4 rounded-lg shadow-md border-l-4 border-orange-500">
           <div className="text-sm text-gray-600 mb-1">MDI Pump Pressure 예측시간 </div>
           <div className="flex justify-between items-center">
             <div>
@@ -328,27 +225,27 @@ const KiboPoscoDashboard = () => {
             </div>
             <GaugeChart value={30} title="위험도" />
           </div>
-        </div>
+        </div> */}
 
-        <div className="bg-white p-4 rounded-lg shadow-md border-l-4 border-blue-500">
+        {/* <div className="bg-white p-4 rounded-lg shadow-md border-l-4 border-blue-500">
           <div className="text-sm text-gray-600 mb-1">POL (cPs)</div>
           <div className="text-2xl font-bold text-blue-600">### cPs</div>
           <div className="text-xs text-gray-500 mt-2">진동: ### g | 온도: ### ℃</div>
           <div className="text-xs text-gray-500">Level: ### m</div>
-        </div>
+        </div> */}
 
-        <div className="bg-white p-4 rounded-lg shadow-md border-l-4 border-green-500">
+        {/* <div className="bg-white p-4 rounded-lg shadow-md border-l-4 border-green-500">
           <div className="text-sm text-gray-600 mb-1">ISO (cPs)</div>
           <div className="text-2xl font-bold text-gray-900">### cPs</div>
           <div className="text-xs text-gray-500 mt-2">진동: ### g | 온도: ### ℃</div>
           <div className="text-xs text-gray-500">Level: ### m</div>
-        </div>
+        </div> */}
       </div>
 
       {/* Pipeline */}
       <div className="bg-white p-4 rounded-lg shadow-md mb-6">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-bold text-gray-900">공정흐름 모니터링</h3>
+          <h3 className="text-lg font-bold text-gray-900">릴레이 실시간 모니터링</h3>
           <div className="flex gap-2">
             <button
               onClick={() => setCurrentSegmentIndex((prev) => (prev - 1 + pipelineSegments.length) % pipelineSegments.length)}
@@ -411,13 +308,12 @@ const KiboPoscoDashboard = () => {
       {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         {/* Trend Chart */}
-        <div className="lg:col-span-2 bg-white p-4 rounded-lg shadow-md">
+        <div className="lg:col-span-3 bg-white p-4 rounded-lg shadow-md">
           <div className="flex justify-between items-start mb-4">
             <div>
-              <div className="font-bold text-gray-900">Cold 2nd line 센서 트렌드 (24h)</div>
+              <div className="font-bold text-gray-900">압력 지표</div>
               <div className="text-sm text-gray-600">원료계 · level · 온도 · 유압계</div>
             </div>
-            <div className="text-xs text-gray-500">16kHz 샘플링 (엣지 처리)</div>
           </div>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -431,14 +327,69 @@ const KiboPoscoDashboard = () => {
                 <Line yAxisId="rpm" type="monotone" dataKey="rpm" stroke="#3b82f6" strokeWidth={2} dot={false} name="원료계 압력지표" />
                 <Line yAxisId="rpm" type="monotone" dataKey="vibration" stroke="#f97316" strokeWidth={2} dot={false} name="level 지표" />
                 <Line yAxisId="temp" type="monotone" dataKey="temperature" stroke="#ef4444" strokeWidth={2} dot={false} name="TK/M/STK 온도지표(℃)" />
-                <Line yAxisId="rpm" type="monotone" dataKey="torque" stroke="#10b981" strokeWidth={2} dot={false} name="유압계 압력지표" />
+                {/* <Line yAxisId="rpm" type="monotone" dataKey="torque" stroke="#10b981" strokeWidth={2} dot={false} name="유압계 압력지표" /> */}
               </LineChart>
             </ResponsiveContainer>
           </div>
         </div>
 
+        {/* Trend Chart */}
+        <div className="lg:col-span-3 bg-white p-4 rounded-lg shadow-md">
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <div className="font-bold text-gray-900">수위 지표</div>
+              <div className="text-sm text-gray-600">원료계 · level · 온도 · 유압계</div>
+            </div>
+          </div>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={spindleData.filter((_, i) => i % 4 === 0)}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="time" />
+                <YAxis yAxisId="rpm" orientation="left" domain={[0, 300]} />
+                <YAxis yAxisId="temp" orientation="right" domain={[10, 60]} />
+                <Tooltip />
+                <Legend />
+                <Line yAxisId="rpm" type="monotone" dataKey="rpm" stroke="#3b82f6" strokeWidth={2} dot={false} name="원료계 압력지표" />
+                <Line yAxisId="rpm" type="monotone" dataKey="vibration" stroke="#f97316" strokeWidth={2} dot={false} name="level 지표" />
+                <Line yAxisId="temp" type="monotone" dataKey="temperature" stroke="#ef4444" strokeWidth={2} dot={false} name="TK/M/STK 온도지표(℃)" />
+                {/* <Line yAxisId="rpm" type="monotone" dataKey="torque" stroke="#10b981" strokeWidth={2} dot={false} name="유압계 압력지표" /> */}
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Trend Chart */}
+        <div className="lg:col-span-3 bg-white p-4 rounded-lg shadow-md">
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <div className="font-bold text-gray-900">온도 지표</div>
+              <div className="text-sm text-gray-600">원료계 · level · 온도 · 유압계</div>
+            </div>
+          </div>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={spindleData.filter((_, i) => i % 4 === 0)}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="time" />
+                <YAxis yAxisId="rpm" orientation="left" domain={[0, 300]} />
+                <YAxis yAxisId="temp" orientation="right" domain={[10, 60]} />
+                <Tooltip />
+                <Legend />
+                <Line yAxisId="rpm" type="monotone" dataKey="rpm" stroke="#3b82f6" strokeWidth={2} dot={false} name="원료계 압력지표" />
+                <Line yAxisId="rpm" type="monotone" dataKey="vibration" stroke="#f97316" strokeWidth={2} dot={false} name="level 지표" />
+                <Line yAxisId="temp" type="monotone" dataKey="temperature" stroke="#ef4444" strokeWidth={2} dot={false} name="TK/M/STK 온도지표(℃)" />
+                {/* <Line yAxisId="rpm" type="monotone" dataKey="torque" stroke="#10b981" strokeWidth={2} dot={false} name="유압계 압력지표" /> */}
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        
+        
+
         {/* Health Radar */}
-        <div className="bg-white p-4 rounded-lg shadow-md">
+        {/* <div className="bg-white p-4 rounded-lg shadow-md">
           <div className="font-bold text-gray-900 mb-3">펌프 · 탱크계 스코어 </div>
           <div className="h-48">
             <ResponsiveContainer width="100%" height="100%">
@@ -450,67 +401,12 @@ const KiboPoscoDashboard = () => {
               </RadarChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </div> */}
       </div>
 
-      {/* EM-AAE Analysis & Events */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <div className="lg:col-span-2 bg-white p-4 rounded-lg shadow-md">
-          <div className="font-bold text-gray-900 mb-3">이상 패턴 분석 (24h)</div>
-          <div className="h-48 mb-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={emAaeData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="time" />
-                <YAxis domain={[0, 1]} />
-                <Tooltip />
-                <Line type="monotone" dataKey="anomaly" stroke="#ef4444" strokeWidth={3} name="이상 점수" />
-                <Line type="monotone" dataKey="threshold" stroke="#6b7280" strokeDasharray="5 5" name="임계값" />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-          
-          <div className="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-400">
-            <div className="font-bold text-yellow-800 mb-2">고장위치(Recent): {currentScenario?.location || ''}</div>
-            <div className="text-yellow-700 text-sm space-y-1">
-              <div>• 고장 유형: {currentScenario?.failureType || ''}</div>
-              <div>• 이상 패턴: {currentScenario?.emCluster || ''}</div>
-              <div>• 고장 원인 역추적: {currentScenario?.details || ''}</div>
-              <div>• 신뢰도: {currentScenario?.confidence || 0}%</div>
+      
 
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-lg shadow-md">
-          <div className="font-bold text-gray-900 mb-3">이상 이벤트 로그</div>
-          <ul className="text-sm text-gray-600 space-y-2">
-            <li className="flex items-start gap-2 p-2 bg-red-50 rounded">
-              <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5" />
-              <div>
-                <div className="font-medium">[12.02 14:30] BACK ISO 워킹탱크 교반기 트립</div>
-                <div className="text-xs text-gray-500">score 0.807</div>
-              </div>
-            </li>
-            <li className="flex items-start gap-2 p-2 bg-yellow-50 rounded">
-              <AlertTriangle className="w-4 h-4 text-yellow-500 mt-0.5" />
-              <div>
-                <div className="font-medium">[12.02 09:15] SOFT, HARD ISO 컨디션탱크 원료 공급시간 초과</div>
-                <div className="text-xs text-gray-500">score 0.82</div>
-              </div>
-            </li>
-          </ul>
-
-          <div className="mt-4">
-            <div className="font-bold text-gray-900 mb-2">권장 조치</div>
-            <div className="bg-red-50 p-3 rounded-lg text-sm text-red-800">
-              {currentScenario?.action || ''}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom Section */}
+      {/* Bottom Section
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
         <div className="bg-white p-4 rounded-lg shadow-md">
@@ -540,7 +436,7 @@ const KiboPoscoDashboard = () => {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Modal */}
       {showModal && currentScenario && (
